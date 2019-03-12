@@ -1,2 +1,4 @@
 ## my first git ignore file
 
+#ignore mac system files
+.DS_Store
