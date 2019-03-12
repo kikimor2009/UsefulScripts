@@ -1,0 +1,7 @@
+#just make an archive
+zip -ejr rf_1.0.116  /Users/macserebro/Downloads/rf_1.0.115
+zip --password Fzgd/3cFJU~\(yYpGc4g: octdf_$1.zip -jr $PWD
+zip --password Fzgd/3cFJU~\(yYpGc4g: PA4devserv_octasic_1.12.4.zip -r *
+
+#howto grep the ip address regex
+grep -E -o "([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)"

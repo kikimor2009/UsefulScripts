@@ -1,0 +1,5 @@
+select vdisk file="D:\maps.vhd"
+attach vdisk
+select part 1
+assign letter=Z
+exit

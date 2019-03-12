@@ -1,0 +1,5 @@
+How to edit the PATH var
+	Go to the configuration page of your slave, and add environment variable PATH, with value: $PATH:/followed-by/paths/you/want/to/add  then reboot
+
+To add jenkins to sudo users just need to edit sudoers file (google it)
+

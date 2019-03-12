@@ -1,0 +1,2 @@
+#remote traffic sniffer through wireshark
+C:\Program Files\PuTTY\plink.exe" -ssh pi@192.168.99.1 -pw Ukrop2018 "sudo tcpdump -U -s 0 -w - 'not port 22'" | "C:\Program Files\Wireshark\wireshark.exe" -k -i -

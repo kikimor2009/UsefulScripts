@@ -1,0 +1,1 @@
+diskpart -s "D:\mountDisk\attachvhd.txt"
