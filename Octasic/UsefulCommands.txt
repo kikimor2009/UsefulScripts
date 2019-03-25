@@ -8,3 +8,6 @@ opkg install /tmp/Files/obm/obm_2.3.4+B391_armel.ipk  --force-downgrade
 obm esm -v dsp_no_wan
 ohm dr -p /tftpboot/RAT_SLS.img
 obm dr -s /tftpboot/RAT_SLS.img
+
+#to define the ram size of octasic
+ls -l /dev/nand0
