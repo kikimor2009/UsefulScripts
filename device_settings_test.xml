@@ -1,0 +1,64 @@
+<settings version = "2">
+	<devices>
+		<device model = "PAX-8">
+			<boards>
+		        <board address="192.168.7.63" is_scanner="1"> //если скан то на 0 антеннах потому и указывается кетч на 1 чтобы было видно что скан на 0 именно
+				<catch_antennas>
+					<dsp_primary tx_ant_id= "1" rx_ant_id = "1"/>
+					<dsp_secondary tx_ant_id= "1" rx_ant_id = "1"/>
+				</catch_antennas>
+				<supported_band value="1" rx_tx_antenna="1" amplifier_id ="1"/> //вот тут 1
+		        </board>
+		        <board address="192.168.7.66">
+				<supported_band value="8" rx_tx_antenna="0" amplifier_id ="2"/> //по умолчанию 0 , если не написано другое
+		        </board>
+			<board address="192.168.7.73">
+				<supported_band value="3" rx_tx_antenna="0" amplifier_id ="3"/> //указываютс бенды антенна и усилитель 
+			</board>
+			<board address="192.168.7.56">
+				<supported_band value="5" rx_tx_antenna="1" amplifier_id ="4"/>
+			</board>
+			</boards>
+            <controll_board address="192.168.7.62" model="PA_Custom_XX">
+                <amplifier name="B1" model="MARGO" channel_count="2" attenuation_file="Config/band_1.xlsx" id="1" /> //каналов всегда 2 смотреть на модель усилков и платы 
+                <amplifier name="B8" model="MARGO" channel_count="2" attenuation_file="Config/band_8.xlsx" id="2" />
+                <amplifier name="B3" model="MARGO" channel_count="2" attenuation_file="Config/band_3.xlsx" id="3" />
+		<amplifier name="B5" model="MARGO" channel_count="2" attenuation_file="Config/band_5.xlsx" id="4" />
+            </controll_board>
+		<combinations>
+			<pair band_1 = "1" band_2 = "3" /> //просто полный перебор всех бендов
+			<pair band_1 = "1" band_2 = "8" />
+			<pair band_1 = "1" band_2 = "5" />
+			<pair band_1 = "8" band_2 = "1" />
+			<pair band_1 = "8" band_2 = "3" />
+			<pair band_1 = "8" band_2 = "5" />
+			<pair band_1 = "3" band_2 = "1" />
+			<pair band_1 = "3" band_2 = "8" />
+			<pair band_1 = "3" band_2 = "5" />
+			<pair band_1 = "5" band_2 = "1" />
+			<pair band_1 = "5" band_2 = "3" />
+			<pair band_1 = "5" band_2 = "8" />
+		</combinations>
+		</device>
+		<channel_settings>
+			<max_channels band = "1" channels="2" />
+			<max_channels band = "8" channels="2" />
+			<max_channels band = "3" channels="2" />
+			<max_channels band = "5" channels="2" />
+		</channel_settings>
+		<catch_bands> //тут не трогал так как не зн какие надо ставить для кетча 
+			<lte>
+				<band value="3" />
+				<band value="20" />
+			</lte>
+			<umts>
+				<band value="1" />				
+				<band value="8" />
+			</umts>
+			<gsm>
+				<band value="4" />
+				<band value="7" />
+			</gsm>
+		</catch_bands>
+	</devices>
+</settings>

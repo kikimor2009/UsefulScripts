@@ -8,3 +8,5 @@ wifiname='rf_'$(cat hash.txt)'_5g'
 #change the wifi settings
 sed -i "s/^ssid=.*/ssid=$wifiname/" /etc/hostapd/hostapd.conf
 rm -f hash.txt
+
+#pass for wifi vmx21234
