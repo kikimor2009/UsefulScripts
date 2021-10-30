@@ -1,9 +1,0 @@
-drive pull Pa4DevServ
-
-zip --password Fzgd/3cFJU~\(yYpGc4g: ~/gdrive/Pa4DevServ/Octasic/Builds/PA4devserv_octasic_1.13.64.zip -r *
-
-drive push ~/gdrive/Pa4DevServ/*
-
-cd ~/gdrive/Pa4DevServ/Octasic/Source
-
-drive push -force -destination Pa4DevServ/Octasic/Source/Home_tmp/PA4devserv PA4devserv

@@ -1,7 +1,7 @@
 #prints the version of rasberryPi
 cat /sys/firmware/devicetree/base/model
 
-#configure ssh service on raspberry pi 
+#configure ssh service on raspberry pi
 #На флешке, в разделе boot создать пустой файл с именем "ssh".  Это заставит ОС без настроек стартануть ssh сервер. Потом через ssh конфигурировать
 
 #disable boot wait without ethernet on raspberryPi
@@ -12,3 +12,10 @@ date -s "2018-12-01 13:30"
 
 #boot time
 systemd-analyze critical-chain
+
+kill -9 $(ps aux | grep wgsPri | grep -v 'grep' | awk '{print $2}')
+
+
+wlin="$(ifconfig -a | grep "wlan" | grep -v "wlan0" | awk -F":" '{print $1}')"
+
+echo $wlin | tr ' ' '\n' | sort

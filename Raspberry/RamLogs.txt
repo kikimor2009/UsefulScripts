@@ -1,5 +1,0 @@
-sudo apt-get install -y busybox-syslogd
-
-sudo dpkg --purge rsyslog
-
-# use "logread" command to see log using

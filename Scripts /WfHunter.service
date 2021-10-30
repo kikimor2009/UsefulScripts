@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Hunter
+After=StartMonMode.service
+
+[Service]
+Type=oneshot
+ExecStart=-/root/PA4devserv/WiFiHunter
+ExecStop=-/root/PA4devserv/WiFiHunter
+
+
+[Install]
+WantedBy=multi-user.target
