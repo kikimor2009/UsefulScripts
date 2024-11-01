@@ -1,0 +1,129 @@
+- name: Get existing buckets info
+  run_once: true
+  uri:
+    url: "http://localhost:8091/pools/default/buckets"
+    user: "{{couchbase_cluster_admin}}"
+    password: "{{couchbase_cluster_password}}"
+    force_basic_auth: true
+  register: buckets_info
+  tags:
+    - reduce_bucket_size
+    - create_new_buckets
+
+- name: Set buckets lists
+  run_once: true
+  set_fact:
+    buckets_info_json: "{{ buckets_info.json }}"
+    existing_buckets: "{{buckets_info.json|json_query('[*].name')}}"
+    old_buckets: "{{couchbase_buckets_reform|json_query('[*].old_bucket_name')}}"
+    new_buckets: "{{ couchbase_buckets_reform | json_query('[*].new_buckets[*].name') | sum(start = []) | unique }}"
+    create_new_buckets: []
+  tags:
+    - reduce_bucket_size
+    - create_new_buckets
+
+  hosts: "{{env}}-gpas-aio"
+  tasks:
+  - name: Wait for MP port
+    wait_for: "port={{ gpas.mp.port }} delay=2 timeout=60"
+  - name: Check GPAS MP Container status OK
+    become: true
+    shell: "timeout 15s docker exec gpas-mp curl -sm5 -X GET 'http://localhost:2607/mp/health' -H 'accept: application/json'"
+    register: gpasmp_status
+    until: gpasmp_status.stdout == 'OK'
+    retries: 20
+    delay: 3
+  - name: POST mp configuration
+    uri:
+      url: "http://localhost:{{gpas.mp.port}}/gpas/db/game/{{item.split('.')[0]|basename}}"
+      method: "POST"
+      body: "{{ lookup('file','{{item}}') }}"
+      body_format: json
+    with_fileglob:
+      - "{{ hostvars['localhost']['git_tmp']['path'] }}/db/game/*.json"
+
+  - name: Get stat about nomad-server hosts
+        uri:
+          method: GET
+          body_format: json
+          url: 'http://{{ inventory_hostname }}:4646/v1/agent/self'
+        register: nomad_servers_stats
+        - name: "check consul cluster"
+  uri:
+    url: "{{ consul_catalog_nodes_endpoint }}"
+    status_code: 200
+
+
+- name: "{{ item.0.action|default('register') }}ing external service {{ item.0.name }} on node {{ item.1 }} via consul server"
+  uri:
+    url: "http://{{ consul_address }}:8500/v1/catalog/{{ item.0.action|default('register') }}"
+    body_format: json
+    method: PUT
+    body: "{{ lookup('template', 'consul_registration_external.j2') }}"
+
+- name: Reduce old buckets size to used RAM value + 5%
+  run_once: true
+  when: new_buckets|length == create_new_buckets|length
+  uri:
+    url: "http://localhost:8091/pools/default/buckets/{{item}}"
+    user: "{{couchbase_cluster_admin}}"
+    password: "{{couchbase_cluster_password}}"
+    method: POST
+    body: "ramQuotaMB={{ ( buckets_info_json | json_query(total_ram_per_serv_query)/1024/1024*(buckets_info_json|json_query(used_ram_perc_query)+5)/100 ) | round(0, 'ceil') | int +100 }}"
+    force_basic_auth: true
+  changed_when: true
+  with_items: "{{ existing_buckets | difference(new_buckets) }}"
+  vars:
+    total_ram_per_serv_query:   "[?name==`{{item}}`].quota.rawRAM|[0]"
+    used_ram_perc_query:        "[?name==`{{item}}`].basicStats.quotaPercentUsed|[0]"
+  tags:
+    - reduce_bucket_size
+
+- name: Create replication
+  run_once: true
+  uri:
+    url: "http://localhost:8091/controller/createReplication"
+    user: "{{couchbase_cluster_admin}}"
+    password: "{{couchbase_cluster_password}}"
+    method: POST
+    body: "toCluster={{couchbase_local_xdcr_name}}&fromBucket={{item.0.old_bucket_name}}&toBucket={{item.1.name}}&replicationType=continuous&docBatchSizeKb={{couchbase_local_xdcr_batch_size_kB}}&workerBatchSize={{couchbase_local_xdcr_batch_count}}&networkUsageLimit={{couchbase_local_xdcr_bandwidth_MB}}&filterExpression={{item.1.key_pattern|default('')}}"
+    force_basic_auth: true
+  with_subelements:
+    - "{{ couchbase_buckets_reform }}"
+    - "new_buckets"
+  when: "\"{{remote_cluster_uuid}}/{{item.0.old_bucket_name}}/{{item.1.name}}\" not in replicas_list"
+  changed_when: true
+  tags:
+    - create_xdcr
+
+- name: Create users per new bucket
+  run_once: true
+  uri:
+    url: "http://localhost:8091/settings/rbac/users/local/{{item}}"
+    user: "{{couchbase_cluster_admin}}"
+    password: "{{couchbase_cluster_password}}"
+    method: PUT
+    body: "roles=bucket_admin[{{item}}],data_reader[{{item}}],data_writer[{{item}}]&name={{item}}&password={{gpas.config.couchbase_pwd|default(couchbase_cluster_password)}}"
+    force_basic_auth: true
+  changed_when: true
+  with_items: "{{new_buckets}}"
+  tags:
+    - new_buckets
+    - create_users
+
+
+
+#Overwrite all other users
+- name: Update Native Users
+  uri:
+    url: http://{{es_api_host}}:{{es_api_port}}/_xpack/security/user/{{item.key}}
+    method: POST
+    body_format: json
+    body: "{{item.value | to_json}}"
+    status_code: 200
+    user: "{{es_api_basic_auth_username}}"
+    password: "{{es_api_basic_auth_password}}"
+    force_basic_auth: yes
+  when: manage_native_users and es_users.native.keys() > 0
+  no_log: True
+  with_dict: "{{es_users.native}}"

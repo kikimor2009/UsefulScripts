@@ -1,0 +1,39 @@
+kubectl -n gpas-dev01 scale --replicas=0 deployment/gpas-front &
+kubectl -n gpas-dev01 scale --replicas=0 deployment/gpas-back &
+kubectl -n gpas-dev01 scale  --replicas=0 deployment/gpas-core-blue &
+kubectl -n gpas-dev01 scale  --replicas=0 deployment/gpas-forfun &
+kubectl -n gpas-dev01 scale  --replicas=0 deployment/gpas-mp &
+kubectl -n gpas-dev01 scale  --replicas=0 deployment/gpas-admin &
+kubectl -n gpas-dev01 scale  --replicas=0 deployment/gpas-maintenance &
+kubectl -n gpas-dev01 scale  --replicas=0 sts/gpas-container-blue-zone-a &
+kubectl -n gpas-dev01 patch cronjobs gpas-mp-config-update -p '{"spec" : {"suspend" : true }}' &
+
+ 
+
+kubectl -n gpas-dev01 scale  --replicas=0 deployment/gpas-couchlabs-exporter
+kubectl -n gpas-dev01 delete CouchbaseCluster gpas-couchbase
+
+ 
+
+kubectl -n couchbase-operator scale  --replicas=0 deployment/couchbase-operator-admission
+kubectl -n couchbase-operator scale  --replicas=0 deployment/couchbase-operator
+
+
+#to start it
+
+kubectl -n gpas-dev01 scale --replicas=2 deployment/gpas-front
+# wait
+
+kubectl -n gpas-dev01 scale  --replicas=1 deployment/gpas-mp
+# wait
+
+kubectl -n gpas-dev01 create job "gpas-mp-config-update-manual-$(date +%s)" --from=cronjob/gpas-mp-config-update
+kubectl -n gpas-dev01 scale --replicas=2 deployment/gpas-back &
+kubectl -n gpas-dev01 scale  --replicas=2 deployment/gpas-core-blue &
+kubectl -n gpas-dev01 scale  --replicas=2 sts/gpas-container-blue-zone-a &
+
+ 
+
+kubectl -n gpas-dev01 scale  --replicas=1 deployment/gpas-forfun &
+kubectl -n gpas-dev01 scale  --replicas=1 deployment/gpas-admin &
+kubectl -n gpas-dev01 scale  --replicas=1 deployment/gpas-maintenance &

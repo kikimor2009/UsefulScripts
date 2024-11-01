@@ -1,0 +1,4 @@
+ssh -o "StrictHostKeyChecking no" -t 10.218.1.70 \
+    'nmap 10.218.3.151 -p T:8091,18091,18092,8092,11210,11207,8093,18093,8095,18095'
+#execute command on the remote server easily
+

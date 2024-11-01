@@ -1,0 +1,45 @@
+pipeline{
+    agent {
+        label 'internal-deploy-agent.poker.ptec'
+    }
+    options {
+        skipStagesAfterUnstable()
+    }
+    stages {
+        stage('Download_Image') {
+            steps {
+ 
+                sh 'echo "Downloading image... docker-local.registry.devinfra.ptec/poker/${image}:${version}"'
+                sh 'docker pull docker-local.registry.devinfra.ptec/poker/${image}:${version}'
+            } 
+        }
+        stage('Download_WizCLI') {
+            steps {
+                // Download_WizCLI
+                sh 'echo "Downloading wizcli..."'
+                sh 'curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli-linux-amd64'
+                sh 'chmod +x wizcli'
+            } 
+        }
+        stage('Auth_With_Wiz') {
+          steps {
+            // Auth with Wiz
+            sh 'echo "Authenticating to the Wiz API..."'
+            withCredentials([usernamePassword(credentialsId: 'poker_wiz-cli', passwordVariable: 'SECRET', usernameVariable: 'ID')]) {
+            sh './wizcli auth --id $ID --secret $SECRET'}
+          }
+        }
+        stage('Scan_With_Wiz') {
+          steps {
+            // Scanning the image
+            sh 'echo "Scanning the image using wizcli..."'
+            sh './wizcli docker scan --tag product=Poker --tag component=${image} --image docker-local.registry.devinfra.ptec/poker/${image}:${version}'
+          }
+        }
+        stage ('Clean_Up'){
+            steps {
+                sh 'docker system prune -a -f'
+            }
+        }
+    }
+}

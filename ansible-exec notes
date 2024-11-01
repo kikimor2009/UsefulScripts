@@ -1,0 +1,8 @@
+Command from jenkins host:
+ansible-playbook upgrade_couchbase_gpas.yml -i trtgpasdev-compotest-01/hosts \
+    -t all -f 5 --private-key /tmp/ssh11333586981023891241.key -u pop_gpas_deploy \
+    -e env=trtgpasdev-compotest-01 --limit trtgpasdev-compotest-01-*,localhost
+
+
+echo 'YOUR_SECRET_VALUE' | ansible-vault decrypt /dev/stdin --output=/dev/stderr > /dev/null
+echo '' | ansible-vault decrypt /dev/stdin --output=/dev/stderr > /dev/null

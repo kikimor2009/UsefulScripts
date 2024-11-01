@@ -1,0 +1,16 @@
+
+# to drop ack package from pop 
+iptables -A INPUT -s 172.18.204.200/32 --protocol tcp --tcp-flags ACK ACK -j DROP
+
+# delete rule
+iptables -D INPUT 1
+
+# list chain INPUT
+iptables -L INPUT -v -n --line-numbers
+
+
+sudo su - 
+
+ip  
+
+--tcp-flags SYN,ACK SYN,ACK
